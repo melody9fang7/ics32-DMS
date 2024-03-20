@@ -1,35 +1,49 @@
-import ds_protocol as dp
 import socket
+import ds_protocol as dp
+
 
 class DirectMessage:
-  def __init__(self):
-    self.recipient = None
-    self.message = None
-    self.timestamp = None
-    self.sender = None
+    """
+    class to represent DMs. includes all properties needed to represent a DM
+    sent to the server.
+    """
+    def __init__(self):
+        self.recipient = None
+        self.message = None
+        self.timestamp = None
+        self.sender = None
 
 
 class DirectMessenger:
+    """
+    class to represent a direct messenger object. contains everything needed to
+    connect to the server, retrieve messages, and send messages.
+    """
     def __init__(self, dsuserver=None, username=None, password=None):
         self.token = None
         self.dsuserver = dsuserver
         self.username = username
         self.password = password
-    
+
     def gettoken(self):
+        """
+        return the current token.
+        """
         return self.token
-    
+
     def send(self, message:str="", recipient:str="") -> bool:
-    # must return true if message successfully sent, false if send failed.
+        """
+        connects to server and sends the dm, joining first if not finding an existing token.
+        returns true or false depending on whether the execution was successful.
+        """
+        ex = False
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-                ex = False
                 client.connect((self.dsuserver, 3021))
-
                 send = client.makefile("wb")
                 recv = client.makefile("rb")
 
-                if self.token == None:
+                if self.token is None:
                     w = dp.format_json_join(self.username, self.password)
                     send.write(w.encode() + b"\r\n")
                     send.flush()
@@ -44,7 +58,7 @@ class DirectMessenger:
                     else:
                         print(f"error! {resp.message}")
                         ex = False
-                
+
                 if message != "" and recipient != "":
                     w = dp.format_json_send_dm(self.token, message, recipient)
                     send.write(w.encode() + b"\r\n")
@@ -64,12 +78,14 @@ class DirectMessenger:
 
             return ex
         except:
-            return False
+            return ex
 
 
 
     def retrieve_new(self) -> list:
-    # must return a list of DirectMessage objects containing all new messages
+        """
+        connects to server and requests all messages, then returns a list of directmessage objects
+        """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
                 client.connect((self.dsuserver, 3021))
@@ -86,16 +102,18 @@ class DirectMessenger:
 
                 new_m = []
                 if resp.type == "ok":
-                    new_m = (resp.messages)
+                    new_m = resp.messages
                 else:
                     print(f"error! {resp.message}")
 
             return new_m
         except:
-            pass 
- 
+            pass
+
     def retrieve_all(self) -> list:
-    # must return a list of DirectMessage objects containing all messages
+        """
+        connects to server and requests all messages, then returns a list of directmessage objects
+        """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
                 client.connect((self.dsuserver, 3021))
@@ -109,8 +127,8 @@ class DirectMessenger:
 
                 resp = recv.readline()
                 resp = dp.extract_json(resp)
-                new_m = (resp.messages)
-            
+                new_m = resp.messages
+
             return new_m
         except:
             pass

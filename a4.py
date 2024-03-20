@@ -1,9 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import simpledialog
 from typing import Text
 import os
+from pathlib import Path
 import ds_messenger as dsm
 import Profile
+from tkinter.messagebox import showinfo
 
 
 class Body(tk.Frame):
@@ -12,9 +15,6 @@ class Body(tk.Frame):
         self.root = root
         self._contacts = [str]
         self._select_callback = recipient_selected_callback
-        # After all initialization is complete,
-        # call the _draw method to pack the widgets
-        # into the Body instance
         self._draw()
 
     def node_select(self):
@@ -205,14 +205,9 @@ class MainApp(tk.Frame):
                                                     self.username, self.password)
         self.profile = None
         self.filename = None
-
-        # After all initialization is complete,
-        # call the _draw method to pack the widgets
-        # into the root frame
         self._draw()
 
     def send_message(self):
-        # You must implement this!
         mm = Body.get_text_entry(self.body)
         if mm != "":
             try:
@@ -304,26 +299,24 @@ class MainApp(tk.Frame):
     def load_p(self):
         idk = tk.simpledialog.askstring("Load DSU File",
                                         "what is the path to the file?")
+        self.profile = Profile.Profile()
+        self.profile.load_profile(path=idk)
+        self.filename = idk
+
+        self.username = self.profile.username
+        self.password = self.profile.password
+        self.server = self.profile.dsuserver
+
+        self.body.insert_contacts(self.profile._convos)
+
+        self.direct_messenger = dsm.DirectMessenger(self.server,
+                                                    self.username, self.password)
+        
         try:
-            self.profile = Profile.Profile()
-            self.profile.load_profile(path=idk)
-            self.filename = idk
-
-            self.username = self.profile.username
-            self.password = self.profile.password
-            self.server = self.profile.dsuserver
-
-            self.body.insert_contacts(self.profile._convos)
-
-            self.direct_messenger = dsm.DirectMessenger(self.server,
-                                                        self.username, self.password)
             dsm.DirectMessenger.send(self.direct_messenger)
         except:
-            pass
+            showinfo("error", "we could not connect to the server. you cannot send anything.")
 
-    def publish(self, message:str):
-        # You must implement this!
-        pass
 
     def check_new(self):
         x = dsm.DirectMessenger.retrieve_new(self.direct_messenger)
@@ -339,7 +332,6 @@ class MainApp(tk.Frame):
         self.root.after(ms = 5000, func = self.check_new)
 
     def _draw(self):
-        # Build a menu and add it to the root frame.
         menu_bar = tk.Menu(self.root)
         self.root['menu'] = menu_bar
 
@@ -352,49 +344,25 @@ class MainApp(tk.Frame):
                                   command=self.add_contact)
         menu_bar.add_command(label='Configure DS Server',
                                   command=self.configure_server)
-
-        # The Body and Footer classes must be initialized and
-        # packed into the root window.
         self.body = Body(self.root,
                          recipient_selected_callback=self.recipient_selected)
         self.body.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
         self.footer = Footer(self.root, send_callback=self.send_message)
         self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM)
 
+        showinfo("window", "welcome to the program!! please click file first, and then choose to open or make a DSU file.")
+
+
 
 def main():
-# All Tkinter programs start with a root window. We will name ours 'main'.
     main = tk.Tk()
-
-    # 'title' assigns a text value to the Title Bar area of a window.
     main.title("melody's ds messaging")
-
-    # This is just an arbitrary starting point. You can change the value
-    # around to see how the starting size of the window changes.
-    main.geometry("400x560")
-
-    # adding this option removes some legacy behavior with menus that
-    # some modern OSes don't support. If you're curious, feel free to comment
-    # out and see how the menu changes.
+    main.geometry("560x560")
     main.option_add('*tearOff', False)
-
-    # Initialize the MainApp class, which is the starting point for the
-    # widgets used in the program. All of the classes that we use,
-    # subclass Tk.Frame, since our root frame is main, we initialize
-    # the class with it.
     app = MainApp(main)
-
-    # When update is called, we finalize the states of all widgets that
-    # have been configured within the root frame. Here, update ensures that
-    # we get an accurate width and height reading based on the types of widgets
-    # we have used. minsize prevents the root window from resizing too small.
-    # Feel free to comment it out and see how the resizing
-    # behavior of the window changes.
     main.update()
     main.minsize(main.winfo_width(), main.winfo_height())
     main.after(ms=5000, func=app.check_new)
-    # And finally, start up the event loop for the program (you can find
-    # more on this in lectures of week 9 and 10).
     main.mainloop()
 
 

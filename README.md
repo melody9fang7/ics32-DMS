@@ -1,0 +1,5 @@
+This is a direct messaging system created with Tkinter for the user interface, and sockets for server connection and utilization. Here is a short breakdown of the different files used to create this project.
+1. A4.py - the main module. Please run this to run the program. A4 deals with tkinter and uses all the other modules to be able to send, store, and display DirectMessaging. To use the direct messaging system, please obey the popup and either load or create a DSU file. Previous conversation and messages will automatically load, and new messages will update every 5 seconds.
+2. DS_messenger.py - handling messaging. This module contains the send() function that directly connects to the server and sends, joins, or retrieves whatever the user needs; the send() function will return either true or false, depending on whether the execution was successful.
+3. DS_protocol.py - decoding and encoding json messages to aid DS_messenger.py.
+4. Profile.py - provided Profile class and a newly created Conversation class, to handle local storage of messages. 

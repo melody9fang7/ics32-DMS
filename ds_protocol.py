@@ -1,9 +1,3 @@
-# ds_protocol.py
-
-# Starter code for assignment 3 in ICS 32 Programming with Software Libraries in Python
-
-# Replace the following placeholders with your information.
-
 # Melody Fang
 # mkfang@uci.edu
 # 37001380
@@ -19,19 +13,16 @@ class DS32ProtocolError(Exception):
     '''
     pass
 
-# Namedtuple to hold the values retrieved from json messages.
-# TODO: update this named tuple to use DSP protocol keys
 RecTuple = namedtuple('RecTuple', ['type','message', 'token', 'messages'])
 
 def extract_json(json_msg:str) -> RecTuple:
     '''
-    Call the json.loads function on a json string and convert it to a DataTuple object
+    call the json.loads function on a json string and convert it to a DataTuple object.
 
-    TODO: replace the pseudo placeholder keys with actual DSP protocol keys
     '''
     try:
         json_obj = json.loads(json_msg)
-        type = json_obj['response']['type']
+        type1 = json_obj['response']['type']
         msg = ""
         try:
             msg = json_obj['response']['message']
@@ -50,31 +41,43 @@ def extract_json(json_msg:str) -> RecTuple:
             pass
         token = ""
 
-        if type == "ok":
+        if type1 == "ok":
             if "token" in str(json_obj):
                 token = json_obj['response']['token']
-        
+
     except json.JSONDecodeError:
         print("Json cannot be decoded.")
 
-    return RecTuple(type, msg, token, msgs)
+    return RecTuple(type1, msg, token, msgs)
 
 
 def format_json_join(username, password):
-    return '{"join": {"username": ' + '"' + username + '"' + ', "password": ' + '"' + password + '"' + ', "token": ""' + '}}' 
+    '''
+    given the username and password, format a json string to send as a json join message to server.
+    '''
+    return '{"join": {"username": ' + '"' + username + '"' + ', "password": ' + '"' + password + '"' + ', "token": ""' + '}}'
 
 
 def format_json_post(token, postmsg):
+    '''
+    given the token and the message to post, format a json string to send as a json post message to server.
+    '''
     t = time.time()
     return '{"token": ' + '"' + token + '"' + ', "post": {"entry": ' + '"' + postmsg + '"' + ', "timestamp" :' + str(t) + '}}'
 
 
 def format_json_bio(token, bio):
+    '''
+    given the token and the new bio, format a json string to send as a change-bio message to server.
+    '''
     t = time.time()
     return '{"token": ' + '"' + token + '"' + ', "bio": {"entry": ' + '"' + bio + '"' + ', "timestamp" :' + str(t) + '}}'
 
 
 def format_json_send_dm(token, message, recipient, t=""):
+    '''
+    given the token, message, and recipient's username format a json string to send a dm through the server. timestamp is generated if not given.
+    '''
     if t == "":
         t = time.time()
     else:
@@ -82,9 +85,12 @@ def format_json_send_dm(token, message, recipient, t=""):
     return '{"token":' + '"' + token + '"' + ', "directmessage": {"entry": ' + '"' + message + '","recipient":"' + recipient +'"' + ', "timestamp": "' + str(t) + '"}}'
 
 def format_json_other_dm(token, option):
+    '''
+    given the token, format a json string to either retrieve new messages, or retrieve all messages from the server.
+    '''
     if option == "n":
         return '{"token":"' + token + '", "directmessage": "new"}'
-    elif option == "a":
+    if option == "a":
         return '{"token":"' + token + '", "directmessage": "all"}'
     else:
         return "problem!"
