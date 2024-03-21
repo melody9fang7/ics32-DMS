@@ -1,3 +1,10 @@
+"""
+handling messaging. This module contains the send() function
+that directly connects to the server and sends, joins, or
+retrieves whatever the user needs; the send() function will
+return either true or false, depending on whether the
+execution was successful.
+"""
 import socket
 import ds_protocol as dp
 
@@ -12,6 +19,18 @@ class DirectMessage:
         self.message = None
         self.timestamp = None
         self.sender = None
+
+    def get_msg(self):
+        """
+        returns the DM's contents
+        """
+        return self.message
+
+    def get_recipient(self):
+        """
+        returns the name of the recipient of the DM
+        """
+        return self.recipient
 
 
 class DirectMessenger:
@@ -31,10 +50,11 @@ class DirectMessenger:
         """
         return self.token
 
-    def send(self, message:str="", recipient:str="") -> bool:
+    def send(self, message: str = "", recipient: str = "") -> bool:
         """
-        connects to server and sends the dm, joining first if not finding an existing token.
-        returns true or false depending on whether the execution was successful.
+        connects to server and sends the dm, joining first if not finding an
+        existing token. returns true or false depending on whether the
+        execution was successful.
         """
         ex = False
         try:
@@ -77,14 +97,13 @@ class DirectMessenger:
                         ex = False
 
             return ex
-        except:
+        except Exception:  # pylint: disable=broad-except
             return ex
-
-
 
     def retrieve_new(self) -> list:
         """
-        connects to server and requests all messages, then returns a list of directmessage objects
+        connects to server and requests all messages, then returns a list
+        of directmessage objects
         """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
@@ -107,12 +126,13 @@ class DirectMessenger:
                     print(f"error! {resp.message}")
 
             return new_m
-        except:
-            pass
+        except Exception:  # pylint: disable=broad-except
+            return ""
 
     def retrieve_all(self) -> list:
         """
-        connects to server and requests all messages, then returns a list of directmessage objects
+        connects to server and requests all messages, then returns
+        a list of directmessage objects
         """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
@@ -130,5 +150,5 @@ class DirectMessenger:
                 new_m = resp.messages
 
             return new_m
-        except:
-            pass
+        except Exception:  # pylint: disable=broad-except
+            return ""

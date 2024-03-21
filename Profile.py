@@ -1,3 +1,7 @@
+# pylint: disable=invalid-name
+"""
+provided Profile module from class, with an added Conversation class.
+"""
 import json
 from pathlib import Path
 import ds_messenger as dsm
@@ -5,33 +9,34 @@ import ds_messenger as dsm
 
 class DsuFileError(Exception):
     """
-    DsuFileError is a custom exception handler that you should catch in your own code. It
-    is raised when attempting to load or save Profile objects to file the system.
+    DsuFileError is a custom exception handler that you should catch
+    in your own code. It is raised when attempting to load or save
+    Profile objects to file the system.
 
     """
-    pass
 
 
 class DsuProfileError(Exception):
     """
-    DsuProfileError is a custom exception handler that you should catch in your own code. It
-    is raised when attempting to deserialize a dsu file to a Profile object.
+    DsuProfileError is a custom exception handler that you should catch
+    in your own code. It is raised when attempting to deserialize a dsu file
+    to a Profile object.
 
     """
-    pass
 
 
 class Conversation(dict):
     """
-    Conversation class represents a conversation, sorting messages by who they're between. the name
-    attribute is the recipient who we're chatting with, but the Conversation attribute includes both
-    sent and received messages. 
+    Conversation class represents a conversation, sorting messages by who
+    they're between. the name attribute is the recipient who we're chatting
+    with, but the Conversation attribute includes both
+    sent and received messages.
     """
-    def __init__(self, name:str = None):
+    def __init__(self, name: str = None):
         self.set_name(name)
         self.set_msgs()
 
-        dict.__init__(self, name=self._name, messages = self._messages)
+        dict.__init__(self, name=self._name, messages=self._messages)
 
     def add_message(self, msg, recipient, sender):
         """
@@ -45,11 +50,14 @@ class Conversation(dict):
 
         dict.__setitem__(self, 'messages', self._messages)
 
-    def set_msgs(self, m=[]):
+    def set_msgs(self, m=""):
         """
         setting the msgs attirbute to either a blank list or a given list.
         """
-        self._messages = m
+        if m == "":
+            self._messages = []
+        else:
+            self._messages = m
         dict.__setitem__(self, 'messages', self._messages)
 
     def set_name(self, name):
@@ -58,6 +66,18 @@ class Conversation(dict):
         """
         self._name = name
         dict.__setitem__(self, 'name', name)
+
+    def get_name(self):
+        """
+        returns the name of the user who the conversation is with.
+        """
+        return self._name
+
+    def get_messages(self):
+        """
+        returns all messages stored in the conversation
+        """
+        return self._messages
 
     def to_dict(self):
         """
@@ -70,10 +90,10 @@ class Conversation(dict):
                 me.append(m)
             else:
                 me.append({
-                'message': m.message,
-                'recipient': m.recipient,
-                'sender': m.sender
-            })
+                    'message': m.message,
+                    'recipient': m.recipient,
+                    'sender': m.sender
+                })
         self.set_msgs(m=me)
 
         return self
@@ -84,15 +104,17 @@ class Conversation(dict):
 
 class Profile:
     """
-    The Profile class exposes the properties required to join an ICS 32 DSU server. You 
-    will need to use this class to manage the information provided by each new user 
-    created within your program for a2. Pay close attention to the properties and 
-    functions in this class as you will need to make use of each of them in your program.
+    The Profile class exposes the properties required to join an
+    ICS 32 DSU server. You will need to use this class to manage the
+    information provided by each new user created within your program
+    for a2. Pay close attention to the properties and functions in
+    this class as you will need to make use of each of them in your program.
 
-    When creating your program you will need to collect user input for the properties 
-    exposed by this class. A Profile class should ensure that a username and password 
-    are set, but contains no conventions to do so. You should make sure that your code 
-    verifies that required properties are set.
+    When creating your program you will need to collect user input for the
+    properties exposed by this class. A Profile class should ensure that a
+    username and password are set, but contains no conventions to do so.
+    You should make sure that your code verifies that required properties
+    are set.
 
     """
 
@@ -109,12 +131,14 @@ class Profile:
         """
         if opt == "me":
             for c in self._convos:
-                if c._name == recipient:
-                    Conversation.add_message(c, msg, sender=sender, recipient=recipient)
+                if c.get_name() == recipient:
+                    Conversation.add_message(c, msg, sender=sender,
+                                             recipient=recipient)
         else:
             for c in self._convos:
-                if c._name == sender:
-                    Conversation.add_message(c, msg, sender=sender, recipient=recipient)
+                if c.get_name() == sender:
+                    Conversation.add_message(c, msg, sender=sender,
+                                             recipient=recipient)
 
     def add_convo(self, recp):
         """
@@ -123,11 +147,16 @@ class Profile:
         c = Conversation(name=recp)
         self._convos.append(c)
 
+    def get_convos(self):
+        """
+        returns the convos
+        """
+        return self._convos
 
     def save_profile(self, path: str) -> None:
         """
-        save_profile accepts an existing dsu file to save the current instance of Profile
-        to the file system.
+        save_profile accepts an existing dsu file to save the current
+        instance of Profile to the file system.
 
         Example usage:
 
@@ -146,14 +175,15 @@ class Profile:
                     self._convos = convos
                     json.dump(self.__dict__, f)
             except Exception as ex:
-                raise DsuFileError("Error while attempting to process the DSU file.", ex)
+                raise DsuFileError("Error while attempting to process the \
+                                   DSU file.", ex) from ex
         else:
             raise DsuFileError("Invalid DSU file path or type")
 
     def load_profile(self, path: str) -> None:
         """
-        load_profile will populate the current instance of Profile with data stored in a
-        DSU file.
+        load_profile will populate the current instance of Profile with data
+        stored in a DSU file.
 
         Example usage:
 
@@ -180,9 +210,10 @@ class Profile:
                         if f_obj['messages'] != []:
                             for m in f_obj['messages']:
                                 c.add_message(msg=m['message'],
-                                              recipient=m['recipient'], sender=m['sender'])
+                                              recipient=m['recipient'],
+                                              sender=m['sender'])
                         self._convos.append(c)
             except Exception as ex:
-                raise DsuProfileError(ex)
+                raise DsuProfileError(ex) from ex
         else:
             raise DsuFileError()
